@@ -8,7 +8,10 @@ export const STORAGE_KEYS = {
   COLUMNS: 'dt_columns',
   SCHEDULES: 'dt_schedules',
   TODOS: 'dt_todos',
+  SYNC_STATE: 'dt_sync_state',
 };
+
+
 
 /* ============================================================
  * UTILS
@@ -269,6 +272,7 @@ export const State = (() => {
   // ---- Reset ----
   const resetAll = () => {
     Object.values(STORAGE_KEYS).forEach((key) => localStorage.removeItem(key));
+    localStorage.removeItem('dt_gcal_token');
   };
 
   return {
@@ -444,4 +448,59 @@ export const initSharedNav = () => {
       }
     });
   }
+};
+
+/* ============================================================
+ * SYNC BUTTON INIT — dipanggil per halaman dengan GcalSync
+ * ============================================================ */
+export const initSyncButton = (gcalSync) => {
+  const btnSync = document.getElementById('btnSyncGcal');
+  if (!btnSync) return;
+
+  gcalSync.init();
+  const updateSyncBtn = () => {
+    const authed = gcalSync.isAuthenticated();
+    const count = gcalSync.getSyncedCount();
+    const lastTime = gcalSync.getLastSyncTime();
+    if (lastTime) {
+      const mins = Math.round((Date.now() - new Date(lastTime).getTime()) / 60000);
+      btnSync.textContent = `☁️ Sync GCal (${count} item, ${mins}m lalu)`;
+    } else {
+      btnSync.textContent = authed ? '☁️ Sync GCal' : '☁️ Login GCal';
+    }
+  };
+
+  btnSync.addEventListener('click', async () => {
+    btnSync.disabled = true;
+
+    try {
+      if (!gcalSync.isAuthenticated()) {
+        const expired = gcalSync.getTokenExpiry();
+        if (expired && expired < Date.now()) {
+          btnSync.textContent = '☁️ Sesi habis, login ulang...';
+        } else {
+          btnSync.textContent = '☁️ Meminta izin...';
+        }
+        await gcalSync.auth();
+      }
+
+      btnSync.textContent = '☁️ Mengirim data...';
+      const result = await gcalSync.syncAll();
+
+      if (result.errors > 0) {
+        showAlert(`Sinkronasi selesai: ${result.synced} sukses, ${result.errors} gagal, ${result.skipped} sudah tersinkron.`);
+      } else {
+        showAlert(`Sinkronasi berhasil! ${result.synced} data baru di-push ke Google Calendar.`);
+      }
+
+      updateSyncBtn();
+    } catch (err) {
+      showAlert(`Gagal sinkronasi: ${err.message}`);
+      updateSyncBtn();
+    } finally {
+      btnSync.disabled = false;
+    }
+  });
+
+  updateSyncBtn();
 };

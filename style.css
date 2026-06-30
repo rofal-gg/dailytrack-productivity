@@ -708,6 +708,44 @@ input[type="color"] {
 }
 .chip button { border: none; background: transparent; cursor: pointer; color: var(--color-text-muted); font-weight: 700; }
 
+/* ---------- Sync Google Calendar ---------- */
+.btn-sync {
+  background: #4285f4;
+  color: #fff;
+  border: none;
+}
+.btn-sync:hover { background: #3367d6; }
+.btn-sync:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  animation: pulse 1.5s ease infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 0.7; }
+  50% { opacity: 1; }
+}
+
+.sync-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  font-size: 0.65rem;
+  font-weight: 700;
+  flex-shrink: 0;
+  line-height: 1;
+}
+.sync-badge.synced {
+  background: #34a853;
+  color: #fff;
+}
+.sync-badge.unsynced {
+  background: #dadce0;
+  color: #5f6368;
+}
+
 /* ---------- Footer ---------- */
 .app-footer {
   text-align: center;

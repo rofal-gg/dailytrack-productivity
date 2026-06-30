@@ -1,5 +1,6 @@
 // FILE: jadwal.js
-import { State, Utils, GCalService, initSharedNav, showConfirm, showAlert } from './core.js';
+import { State, Utils, GCalService, initSharedNav, initSyncButton, showConfirm, showAlert } from './core.js';
+import { GcalSync } from './gcal-sync.js';
 
 const thead = document.getElementById('jadwalThead');
 const tbody = document.getElementById('jadwalTbody');
@@ -54,10 +55,14 @@ const buildRowHTML = (schedule, columns) => {
 
   const isRecurring = rt === 'daily' || rt === 'weekly';
   const isCompleted = schedule.completed;
+  const syncStatus = GcalSync.getSyncStatus(schedule.id);
+  const syncBadge = syncStatus
+    ? `<span class="sync-badge synced" title="Tersinkron ${new Date(syncStatus.syncedAt).toLocaleString('id-ID')}">✓</span> `
+    : `<span class="sync-badge unsynced" title="Belum disinkronkan">○</span> `;
   const actions = isCompleted
-    ? `<button type="button" class="btn-action btn-edit" data-action="restore-row" data-id="${schedule.id}">Pulihkan</button>
+    ? `${syncBadge}<button type="button" class="btn-action btn-edit" data-action="restore-row" data-id="${schedule.id}">Pulihkan</button>
        <button type="button" class="btn-action btn-delete" data-action="delete-row" data-id="${schedule.id}">Hapus</button>`
-    : `<button type="button" class="btn-action btn-edit" data-action="edit-row" data-id="${schedule.id}">Edit</button>
+    : `${syncBadge}<button type="button" class="btn-action btn-edit" data-action="edit-row" data-id="${schedule.id}">Edit</button>
        ${isRecurring ? '' : `<button type="button" class="btn-action btn-success" data-action="complete-row" data-id="${schedule.id}">Selesai</button>`}
        <button type="button" class="btn-action btn-gcal" data-action="gcal" data-id="${schedule.id}">G-Cal</button>
        <button type="button" class="btn-action btn-delete" data-action="delete-row" data-id="${schedule.id}">Hapus</button>`;
@@ -185,6 +190,7 @@ document.getElementById('formJadwal').addEventListener('submit', (e) => {
   };
 
   if (editingScheduleId) {
+    GcalSync.markUnsynced(editingScheduleId);
     State.updateSchedule(editingScheduleId, data);
   } else {
     State.addSchedule(data);
@@ -226,16 +232,19 @@ tbody.addEventListener('click', async (e) => {
     openJadwalModal(id);
   }
   if (action === 'complete-row') {
+    GcalSync.markUnsynced(id);
     State.updateSchedule(id, { completed: true });
     renderTable();
   }
   if (action === 'restore-row') {
+    GcalSync.markUnsynced(id);
     State.updateSchedule(id, { completed: false });
     renderTable();
   }
   if (action === 'delete-row') {
     const ok = await showConfirm('Hapus baris jadwal ini?');
     if (ok) {
+      GcalSync.markUnsynced(id);
       State.deleteSchedule(id);
       renderTable();
     }
@@ -432,5 +441,6 @@ document.getElementById('priorityList').addEventListener('click', async (e) => {
 document.addEventListener('DOMContentLoaded', () => {
   State.init();
   initSharedNav();
+  initSyncButton(GcalSync);
   renderTable();
 });

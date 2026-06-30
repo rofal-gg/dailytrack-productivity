@@ -1,5 +1,6 @@
 // FILE: todo.js
-import { State, Utils, initSharedNav, showConfirm } from './core.js';
+import { State, Utils, initSharedNav, initSyncButton, showConfirm } from './core.js';
+import { GcalSync } from './gcal-sync.js';
 
 const todoListEl = document.getElementById('todoList');
 const todoPrioritySelect = document.getElementById('todoPriority');
@@ -18,6 +19,10 @@ const renderSelectOptions = () => {
 
 const renderTodoCard = (item) => {
   const pri = State.getPriorityById(item.priorityId);
+  const syncStatus = GcalSync.getSyncStatus(item.id);
+  const syncBadge = syncStatus
+    ? `<span class="sync-badge synced" title="Tersinkron ${new Date(syncStatus.syncedAt).toLocaleString('id-ID')}">✓</span> `
+    : `<span class="sync-badge unsynced" title="Belum disinkronkan">○</span> `;
   return `
     <article class="todo-card ${item.completed ? 'completed' : ''}" style="background:${pri.color}33; border-left-color:${pri.color};" data-id="${item.id}">
       <label class="todo-checkbox-wrapper">
@@ -31,7 +36,10 @@ const renderTodoCard = (item) => {
           <span class="badge" style="background:${pri.color};">${Utils.escapeHtml(pri.name)}</span>
         </div>
       </div>
-      <button type="button" class="btn-action btn-delete" data-action="delete-todo" data-id="${item.id}">Hapus</button>
+      <div style="display:flex;align-items:center;gap:6px;">
+        ${syncBadge}
+        <button type="button" class="btn-action btn-delete" data-action="delete-todo" data-id="${item.id}">Hapus</button>
+      </div>
     </article>
   `;
 };
@@ -79,11 +87,11 @@ todoListEl.addEventListener('click', (e) => {
   const target = e.target.closest('[data-action]');
   if (!target) return;
   const { action, id } = target.dataset;
-  if (action === 'toggle-todo') { State.toggleTodo(id); renderTodos(); }
+  if (action === 'toggle-todo') { GcalSync.markUnsynced(id); State.toggleTodo(id); renderTodos(); }
   if (action === 'delete-todo') {
     (async () => {
       const ok = await showConfirm('Hapus to-do ini?');
-      if (ok) { State.deleteTodo(id); renderTodos(); }
+      if (ok) { GcalSync.markUnsynced(id); State.deleteTodo(id); renderTodos(); }
     })();
   }
 });
@@ -116,6 +124,7 @@ document.getElementById('formTodo').addEventListener('submit', (e) => {
 document.addEventListener('DOMContentLoaded', () => {
   State.init();
   initSharedNav();
+  initSyncButton(GcalSync);
   renderSelectOptions();
   renderTodos();
 });
