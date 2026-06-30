@@ -1,0 +1,75 @@
+<!-- FILE: dashboard.html -->
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard - DailyTrack</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="navbar">
+  <div class="navbar-inner">
+    <a href="dashboard.html" class="brand">📅 DailyTrack</a>
+    <nav class="nav-links">
+      <a href="dashboard.html" class="nav-link active">Dashboard</a>
+      <a href="jadwal.html" class="nav-link">Jadwal</a>
+      <a href="todo.html" class="nav-link">To-Do</a>
+    </nav>
+    <div class="navbar-actions">
+      <button id="btnExportCsv" class="btn btn-secondary">Export CSV</button>
+      <button id="btnReset" class="btn btn-danger">Reset</button>
+    </div>
+  </div>
+</header>
+
+<main class="page-container">
+  <div class="page-header">
+    <h1>🗂️ Dashboard Mingguan</h1>
+  </div>
+
+  <section class="panel">
+    <div class="week-nav">
+      <button id="btnPrevWeek" class="btn btn-outline btn-sm">← Minggu Lalu</button>
+      <span id="weekLabel" class="week-label"></span>
+      <div style="display:flex; gap:8px;">
+        <button id="btnThisWeek" class="btn btn-outline btn-sm">Minggu Ini</button>
+        <button id="btnNextWeek" class="btn btn-outline btn-sm">Minggu Depan →</button>
+      </div>
+    </div>
+
+    <div class="dashboard-controls">
+      <div class="color-mode-toggle">
+        <span class="color-mode-label">Warna chip:</span>
+        <button id="btnColorCategory" class="btn btn-sm btn-toggle active">Kategori</button>
+        <button id="btnColorPriority" class="btn btn-sm btn-toggle">Prioritas</button>
+      </div>
+      <div id="legend" class="legend"></div>
+    </div>
+
+    <div class="matrix-scroll" id="matrixScroll">
+      <div id="matrixGrid" class="matrix-grid"></div>
+      <div id="todoWeekGrid" class="todo-week-grid"></div>
+    </div>
+  </section>
+</main>
+
+<footer class="app-footer">
+  <p>&copy; 2026 Muhammad Ainur Rofal Achsony &bull; All Rights Reserved &bull; Kritik &amp; Saran: <a href="mailto:achsony07@gmail.com">achsony07@gmail.com</a></p>
+</footer>
+
+<!-- Modal: Detail Jadwal -->
+<div id="modalDetail" class="modal-overlay">
+  <div class="modal" role="dialog" aria-modal="true">
+    <div class="modal-header">
+      <h3>Detail Jadwal</h3>
+      <button type="button" class="modal-close" data-close-modal="modalDetail">&times;</button>
+    </div>
+    <div id="detailBody" class="modal-body"></div>
+  </div>
+</div>
+
+<script type="module" src="dashboard.js"></script>
+</body>
+</html>

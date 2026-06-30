@@ -1,0 +1,204 @@
+<!-- FILE: jadwal.html -->
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jadwal - DailyTrack</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="navbar">
+  <div class="navbar-inner">
+    <a href="dashboard.html" class="brand">📅 DailyTrack</a>
+    <nav class="nav-links">
+      <a href="dashboard.html" class="nav-link">Dashboard</a>
+      <a href="jadwal.html" class="nav-link active">Jadwal</a>
+      <a href="todo.html" class="nav-link">To-Do</a>
+    </nav>
+    <div class="navbar-actions">
+      <button id="btnExportCsv" class="btn btn-secondary">Export CSV</button>
+      <button id="btnReset" class="btn btn-danger">Reset</button>
+    </div>
+  </div>
+</header>
+
+<main class="page-container">
+  <div class="page-header">
+    <h1>🗓️ Jadwal (Tabel)</h1>
+    <div class="page-header-actions">
+      <button id="btnManageCategories" class="btn btn-outline">Kelola Kategori</button>
+      <button id="btnManagePriorities" class="btn btn-outline">Kelola Prioritas</button>
+    </div>
+  </div>
+
+  <section class="panel">
+    <div class="table-toolbar">
+      <div style="display:flex; gap:0;">
+        <button id="btnAddRow" class="btn btn-primary" style="border-radius:8px 0 0 8px;">+ Tambah Jadwal</button>
+        <button id="btnAddColumn" class="btn btn-primary" style="border-radius:0 8px 8px 0; border-left:1px solid rgba(255,255,255,0.25);">+ Kolom</button>
+      </div>
+    </div>
+
+    <div class="table-scroll">
+      <table class="excel-table" id="jadwalTable">
+        <thead id="jadwalThead"></thead>
+        <tbody id="jadwalTbody"></tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<!-- Modal: Tambah/Edit Jadwal -->
+<div id="modalJadwal" class="modal-overlay">
+  <div class="modal" role="dialog" aria-modal="true">
+    <div class="modal-header">
+      <h3 id="modalJadwalTitle">Tambah Jadwal</h3>
+      <button type="button" class="modal-close" data-close-modal="modalJadwal">&times;</button>
+    </div>
+    <form id="formJadwal" class="modal-body">
+      <div class="form-group">
+        <label for="jadwalName">Nama Kegiatan</label>
+        <input type="text" id="jadwalName" required placeholder="Contoh: Belajar Matematika">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="jadwalDate">Tanggal</label>
+          <input type="date" id="jadwalDate" required>
+        </div>
+        <div class="form-group">
+          <label for="jadwalCategory">Kategori</label>
+          <select id="jadwalCategory" required></select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="jadwalStart">Mulai</label>
+          <input type="time" id="jadwalStart" required>
+        </div>
+        <div class="form-group">
+          <label for="jadwalEnd">Selesai</label>
+          <input type="time" id="jadwalEnd" required>
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="jadwalPriority">Prioritas</label>
+        <select id="jadwalPriority" required></select>
+      </div>
+      <div class="form-group">
+        <label>Perulangan</label>
+        <div class="radio-group" id="repeatGroup">
+          <label class="radio-option">
+            <input type="radio" name="repeatType" value="none">
+            <span class="radio-label">Hanya 1 kali</span>
+          </label>
+          <label class="radio-option">
+            <input type="radio" name="repeatType" value="daily">
+            <span class="radio-label">Setiap Hari</span>
+          </label>
+          <label class="radio-option">
+            <input type="radio" name="repeatType" value="weekly">
+            <span class="radio-label">Setiap Minggu</span>
+          </label>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" data-close-modal="modalJadwal">Batal</button>
+        <button type="submit" class="btn btn-primary">Simpan</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal: Tambah Kolom -->
+<div id="modalAddColumn" class="modal-overlay">
+  <div class="modal" role="dialog" aria-modal="true">
+    <div class="modal-header">
+      <h3>Tambah Kolom Baru</h3>
+      <button type="button" class="modal-close" data-close-modal="modalAddColumn">&times;</button>
+    </div>
+    <form id="formAddColumn" class="modal-body">
+      <div class="form-group">
+        <label for="columnLabel">Nama Kolom</label>
+        <input type="text" id="columnLabel" required placeholder="Contoh: Lokasi, Catatan, dll.">
+      </div>
+      <div class="form-group">
+        <label for="columnType">Tipe Input</label>
+        <select id="columnType">
+          <option value="text">Teks bebas</option>
+          <option value="date">Tanggal</option>
+          <option value="time">Waktu</option>
+          <option value="dropdown">Dropdown (pilihan custom)</option>
+        </select>
+      </div>
+      <div class="form-group" id="dropdownOptionsGroup" style="display:none;">
+        <label for="dropdownOptionInput">Pilihan Dropdown</label>
+        <div style="display:flex; gap:8px;">
+          <input type="text" id="dropdownOptionInput" placeholder="Ketik pilihan lalu Enter">
+          <button type="button" id="btnAddOption" class="btn btn-outline btn-sm">Tambah</button>
+        </div>
+        <div class="chip-list" id="dropdownOptionsList"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" data-close-modal="modalAddColumn">Batal</button>
+        <button type="submit" class="btn btn-primary">Tambah Kolom</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal: Kelola Kategori -->
+<div id="modalCategory" class="modal-overlay">
+  <div class="modal" role="dialog" aria-modal="true">
+    <div class="modal-header">
+      <h3>Kelola Kategori</h3>
+      <button type="button" class="modal-close" data-close-modal="modalCategory">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form id="formCategory">
+        <div class="manage-add-row">
+          <input type="color" id="categoryColorInput" value="#cdd6ff">
+          <input type="text" id="categoryNameInput" placeholder="Nama kategori baru" required>
+          <button type="submit" class="btn btn-primary btn-sm">Tambah</button>
+        </div>
+        <div class="form-group" style="margin:8px 0 0;">
+          <label for="categoryRepeat">Perulangan bawaan</label>
+          <select id="categoryRepeat">
+            <option value="none">Tidak berulang</option>
+            <option value="daily">Harian</option>
+            <option value="weekly">Mingguan</option>
+            <option value="weekdays">Setiap hari kerja (Senin–Jumat)</option>
+          </select>
+        </div>
+      </form>
+      <ul id="categoryList" class="manage-list"></ul>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Kelola Prioritas -->
+<div id="modalPriority" class="modal-overlay">
+  <div class="modal" role="dialog" aria-modal="true">
+    <div class="modal-header">
+      <h3>Kelola Prioritas</h3>
+      <button type="button" class="modal-close" data-close-modal="modalPriority">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form id="formPriority" class="manage-add-row">
+        <input type="color" id="priorityColorInput" value="#ffadad">
+        <input type="text" id="priorityNameInput" placeholder="Nama prioritas baru" required>
+        <button type="submit" class="btn btn-primary btn-sm">Tambah</button>
+      </form>
+      <ul id="priorityList" class="manage-list"></ul>
+    </div>
+  </div>
+</div>
+
+<footer class="app-footer">
+  <p>&copy; 2026 Muhammad Ainur Rofal Achsony &bull; All Rights Reserved &bull; Kritik &amp; Saran: <a href="mailto:achsony07@gmail.com">achsony07@gmail.com</a></p>
+</footer>
+
+<script type="module" src="jadwal.js"></script>
+</body>
+</html>
