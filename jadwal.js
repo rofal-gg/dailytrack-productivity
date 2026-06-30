@@ -56,7 +56,8 @@ const buildRowHTML = (schedule, columns) => {
   const isRecurring = rt === 'daily' || rt === 'weekly';
   const isCompleted = schedule.completed;
   const syncStatus = GcalSync.getSyncStatus(schedule.id);
-  const syncBadge = syncStatus
+  const isSynced = syncStatus && !syncStatus.dirty;
+  const syncBadge = isSynced
     ? `<span class="sync-badge synced" title="Tersinkron ${new Date(syncStatus.syncedAt).toLocaleString('id-ID')}">✓</span> `
     : `<span class="sync-badge unsynced" title="Belum disinkronkan">○</span> `;
   const actions = isCompleted
@@ -190,8 +191,8 @@ document.getElementById('formJadwal').addEventListener('submit', (e) => {
   };
 
   if (editingScheduleId) {
-    GcalSync.markUnsynced(editingScheduleId);
     State.updateSchedule(editingScheduleId, data);
+    GcalSync.markDirty(editingScheduleId);
   } else {
     State.addSchedule(data);
   }
@@ -232,19 +233,18 @@ tbody.addEventListener('click', async (e) => {
     openJadwalModal(id);
   }
   if (action === 'complete-row') {
-    GcalSync.markUnsynced(id);
     State.updateSchedule(id, { completed: true });
+    GcalSync.markDirty(id);
     renderTable();
   }
   if (action === 'restore-row') {
-    GcalSync.markUnsynced(id);
     State.updateSchedule(id, { completed: false });
+    GcalSync.markDirty(id);
     renderTable();
   }
   if (action === 'delete-row') {
     const ok = await showConfirm('Hapus baris jadwal ini?');
     if (ok) {
-      GcalSync.markUnsynced(id);
       State.deleteSchedule(id);
       renderTable();
     }

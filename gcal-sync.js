@@ -122,71 +122,117 @@ export const GcalSync = (() => {
     });
   };
 
-  const pushSchedule = async (schedule) => {
+  const buildScheduleBody = (schedule) => {
     const cat = State.getCategoryById(schedule.categoryId);
     const pri = State.getPriorityById(schedule.priorityId);
-
-    return doFetch('https://www.googleapis.com/calendar/v3/calendars/primary/events', {
-      method: 'POST',
-      body: JSON.stringify({
-        summary: schedule.description || '(Tanpa judul)',
-        description: `Kategori: ${cat.name}\nPrioritas: ${pri.name}`,
-        start: { dateTime: `${schedule.date}T${schedule.startTime}:00`, timeZone: 'Asia/Jakarta' },
-        end: { dateTime: `${schedule.date}T${schedule.endTime}:00`, timeZone: 'Asia/Jakarta' },
-      }),
+    return JSON.stringify({
+      summary: schedule.description || '(Tanpa judul)',
+      description: `Kategori: ${cat.name}\nPrioritas: ${pri.name}`,
+      start: { dateTime: `${schedule.date}T${schedule.startTime}:00`, timeZone: 'Asia/Jakarta' },
+      end: { dateTime: `${schedule.date}T${schedule.endTime}:00`, timeZone: 'Asia/Jakarta' },
     });
   };
 
-  const pushTodo = async (todo) => {
+  const buildTodoBody = (todo) => {
     const pri = State.getPriorityById(todo.priorityId);
-
-    return doFetch('https://www.googleapis.com/calendar/v3/calendars/primary/events', {
-      method: 'POST',
-      body: JSON.stringify({
-        summary: todo.name || '(Tanpa judul)',
-        description: `Prioritas: ${pri.name}\n(Dari To-Do DailyTrack)`,
-        start: { date: todo.date, timeZone: 'Asia/Jakarta' },
-        end: { date: todo.date, timeZone: 'Asia/Jakarta' },
-      }),
+    return JSON.stringify({
+      summary: todo.name || '(Tanpa judul)',
+      description: `Prioritas: ${pri.name}\n(Dari To-Do DailyTrack)`,
+      start: { date: todo.date, timeZone: 'Asia/Jakarta' },
+      end: { date: todo.date, timeZone: 'Asia/Jakarta' },
     });
   };
 
-  const syncAll = async (onProgress) => {
+  const pushSchedule = async (schedule) =>
+    doFetch('https://www.googleapis.com/calendar/v3/calendars/primary/events', {
+      method: 'POST',
+      body: buildScheduleBody(schedule),
+    });
+
+  const pushTodo = async (todo) =>
+    doFetch('https://www.googleapis.com/calendar/v3/calendars/primary/events', {
+      method: 'POST',
+      body: buildTodoBody(todo),
+    });
+
+  const updateScheduleEvent = async (schedule, gcalEventId) =>
+    doFetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events/${gcalEventId}`, {
+      method: 'PATCH',
+      body: buildScheduleBody(schedule),
+    });
+
+  const updateTodoEvent = async (todo, gcalEventId) =>
+    doFetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events/${gcalEventId}`, {
+      method: 'PATCH',
+      body: buildTodoBody(todo),
+    });
+
+  const deleteEvent = async (gcalEventId) => {
+    const res = await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events/${gcalEventId}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    if (res.status === 401) { clearToken(); throw new Error('Sesi login habis. Silakan login ulang.'); }
+    if (res.status === 404) return;
+    if (!res.ok) { const body = await res.text().catch(() => ''); throw new Error(`HTTP ${res.status}: ${body || res.statusText}`); }
+  };
+
+  const syncAll = async () => {
     if (!isAuthenticated()) throw new Error('Belum login');
 
     const syncState = getSyncState();
     const schedules = State.getSchedules();
     const todos = State.getTodos();
 
-    const items = [
-      ...schedules.map((s) => ({ ...s, _type: 'schedule' })),
-      ...todos.map((t) => ({ ...t, _type: 'todo' })),
-    ];
+    const currentIds = new Set();
+    const activeItems = [];
 
-    let synced = 0;
-    let errors = 0;
-    let skipped = 0;
+    for (const s of schedules) { currentIds.add(s.id); activeItems.push({ ...s, _type: 'schedule' }); }
+    for (const t of todos) { currentIds.add(t.id); activeItems.push({ ...t, _type: 'todo' }); }
 
-    for (let i = 0; i < items.length; i++) {
-      const item = items[i];
-      if (syncState[item.id]) { skipped++; continue; }
+    let synced = 0, errors = 0, skipped = 0;
+
+    for (const [id, st] of Object.entries(syncState)) {
+      if (!currentIds.has(id) && st.gcalEventId) {
+        try {
+          await deleteEvent(st.gcalEventId);
+          synced++;
+        } catch (err) {
+          if (err.message.includes('Sesi login')) throw err;
+          errors++;
+        }
+        delete syncState[id];
+      }
+    }
+
+    for (const item of activeItems) {
+      const existing = syncState[item.id];
+
+      if (existing && !existing.dirty) { skipped++; continue; }
 
       try {
-        const result = item._type === 'schedule'
-          ? await pushSchedule(item)
-          : await pushTodo(item);
+        let result;
+        if (existing && existing.gcalEventId) {
+          result = item._type === 'schedule'
+            ? await updateScheduleEvent(item, existing.gcalEventId)
+            : await updateTodoEvent(item, existing.gcalEventId);
+        } else {
+          result = item._type === 'schedule'
+            ? await pushSchedule(item)
+            : await pushTodo(item);
+        }
         syncState[item.id] = {
           gcalEventId: result.id,
           syncedAt: new Date().toISOString(),
           type: item._type,
+          dirty: false,
         };
         synced++;
       } catch (err) {
+        if (err.message.includes('Sesi login')) throw err;
         console.error(`Gagal sync ${item._type} ${item.id}:`, err);
         errors++;
       }
-
-      if (onProgress) onProgress(synced, errors, skipped, i + 1, items.length);
     }
 
     saveSyncState(syncState);
@@ -198,10 +244,10 @@ export const GcalSync = (() => {
     return state[itemId] || null;
   };
 
-  const markUnsynced = (itemId) => {
+  const markDirty = (itemId) => {
     const state = getSyncState();
     if (state[itemId]) {
-      delete state[itemId];
+      state[itemId].dirty = true;
       saveSyncState(state);
     }
   };
@@ -228,7 +274,7 @@ export const GcalSync = (() => {
   return {
     init, isAuthenticated, auth,
     pushSchedule, pushTodo, syncAll,
-    getSyncStatus, markUnsynced, clearAllSync,
+    getSyncStatus, markDirty, clearAllSync,
     getLastSyncTime, getSyncedCount, getTokenExpiry,
   };
 })();

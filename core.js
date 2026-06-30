@@ -441,7 +441,7 @@ export const initSharedNav = () => {
 
   if (btnReset) {
     btnReset.addEventListener('click', async () => {
-      const ok = await showConfirm('Yakin ingin menghapus SELURUH data DailyTrack (Jadwal, To-Do, Kategori, Prioritas, Kolom)? Tindakan ini tidak bisa dibatalkan.');
+      const ok = await showConfirm('Yakin ingin menghapus SELURUH data DailyTrack (Jadwal, To-Do, Kategori, Prioritas, Kolom)? Event di Google Calendar TIDAK ikut terhapus.');
       if (ok) {
         State.resetAll();
         location.reload();

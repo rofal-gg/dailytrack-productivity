@@ -20,7 +20,8 @@ const renderSelectOptions = () => {
 const renderTodoCard = (item) => {
   const pri = State.getPriorityById(item.priorityId);
   const syncStatus = GcalSync.getSyncStatus(item.id);
-  const syncBadge = syncStatus
+  const isSynced = syncStatus && !syncStatus.dirty;
+  const syncBadge = isSynced
     ? `<span class="sync-badge synced" title="Tersinkron ${new Date(syncStatus.syncedAt).toLocaleString('id-ID')}">✓</span> `
     : `<span class="sync-badge unsynced" title="Belum disinkronkan">○</span> `;
   return `
@@ -87,11 +88,11 @@ todoListEl.addEventListener('click', (e) => {
   const target = e.target.closest('[data-action]');
   if (!target) return;
   const { action, id } = target.dataset;
-  if (action === 'toggle-todo') { GcalSync.markUnsynced(id); State.toggleTodo(id); renderTodos(); }
+  if (action === 'toggle-todo') { State.toggleTodo(id); GcalSync.markDirty(id); renderTodos(); }
   if (action === 'delete-todo') {
     (async () => {
       const ok = await showConfirm('Hapus to-do ini?');
-      if (ok) { GcalSync.markUnsynced(id); State.deleteTodo(id); renderTodos(); }
+      if (ok) { State.deleteTodo(id); renderTodos(); }
     })();
   }
 });
