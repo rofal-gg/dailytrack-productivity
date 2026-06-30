@@ -533,3 +533,38 @@ export const initImportButton = (gcalSync) => {
     }
   });
 };
+
+/* ============================================================
+ * RESET SYNC BUTTON INIT — hapus semua event GCal + resetAll, tetap login
+ * ============================================================ */
+export const initResetSyncButton = (gcalSync) => {
+  const btn = document.getElementById('btnResetSync');
+  if (!btn) return;
+
+  btn.addEventListener('click', async () => {
+    const ok = await showConfirm('Hapus SEMUA data di DailyTrack DAN semua event yang tersinkron dari Google Calendar? Token login tetap aman.');
+    if (!ok) return;
+
+    btn.disabled = true;
+    btn.textContent = '🔄 Menghapus event GCal...';
+
+    try {
+      if (!gcalSync.isAuthenticated()) {
+        btn.textContent = '🔄 Login dulu...';
+        await gcalSync.auth();
+      }
+
+      const result = await gcalSync.resetSyncAll((done, total) => {
+        btn.textContent = `🔄 Menghapus ${done}/${total}...`;
+      });
+
+      btn.textContent = '🔄 Membersihkan data lokal...';
+      State.resetAll();
+      location.reload();
+    } catch (err) {
+      showAlert(`Gagal reset sync: ${err.message}`);
+      btn.disabled = false;
+      btn.textContent = '🔄 Reset Sync';
+    }
+  });
+};

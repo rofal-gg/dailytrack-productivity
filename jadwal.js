@@ -1,5 +1,5 @@
 // FILE: jadwal.js
-import { State, Utils, GCalService, initSharedNav, initSyncButton, initImportButton, showConfirm, showAlert } from './core.js';
+import { State, Utils, GCalService, initSharedNav, initSyncButton, initImportButton, initResetSyncButton, showConfirm, showAlert } from './core.js';
 import { GcalSync } from './gcal-sync.js';
 
 const thead = document.getElementById('jadwalThead');
@@ -443,5 +443,6 @@ document.addEventListener('DOMContentLoaded', () => {
   initSharedNav();
   initSyncButton(GcalSync);
   initImportButton(GcalSync);
+  initResetSyncButton(GcalSync);
   renderTable();
 });

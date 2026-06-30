@@ -341,6 +341,31 @@ export const GcalSync = (() => {
     localStorage.removeItem(SYNC_KEY);
   };
 
+  const resetSyncAll = async (onProgress) => {
+    if (!isAuthenticated()) throw new Error('Belum login. Klik Sync dulu.');
+
+    const syncState = getSyncState();
+    const entries = Object.entries(syncState).filter(([, st]) => st.gcalEventId);
+    let deleted = 0, errors = 0;
+
+    for (let i = 0; i < entries.length; i++) {
+      const [id, st] = entries[i];
+      try {
+        await deleteEvent(st.gcalEventId);
+        delete syncState[id];
+        deleted++;
+      } catch (err) {
+        if (err.message.includes('Sesi login')) throw err;
+        delete syncState[id];
+        errors++;
+      }
+      if (onProgress) onProgress(deleted + errors, entries.length);
+    }
+
+    saveSyncState(syncState);
+    return { deleted, errors };
+  };
+
   const getLastSyncTime = () => {
     const state = getSyncState();
     const times = Object.values(state).map((s) => s.syncedAt).filter(Boolean).sort();
@@ -358,7 +383,7 @@ export const GcalSync = (() => {
 
   return {
     init, isAuthenticated, auth,
-    pushSchedule, pushTodo, syncAll, importEvents,
+    pushSchedule, pushTodo, syncAll, importEvents, resetSyncAll,
     getSyncStatus, markDirty, clearAllSync,
     getLastSyncTime, getSyncedCount, getTokenExpiry,
   };
