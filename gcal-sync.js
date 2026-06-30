@@ -55,6 +55,21 @@ const fmtLocalDate = (d) =>
 const fmtLocalTime = (d) =>
   `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 
+const RRULE_DAY_MAP = ['SU', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA'];
+
+const getDayIndex = (dateStr) => {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  return new Date(y, m - 1, d).getDay();
+};
+
+const toRecurrence = (schedule) => {
+  const rt = schedule.repeatType || (schedule.repeatDaily ? 'daily' : 'none');
+  if (rt === 'none') return undefined;
+  if (rt === 'daily') return ['RRULE:FREQ=DAILY'];
+  if (rt === 'weekly') return [`RRULE:FREQ=WEEKLY;BYDAY=${RRULE_DAY_MAP[getDayIndex(schedule.date)]}`];
+  return undefined;
+};
+
 const getSyncState = () => {
   try { return JSON.parse(localStorage.getItem(SYNC_KEY) || '{}'); }
   catch { return {}; }
@@ -131,13 +146,16 @@ export const GcalSync = (() => {
   const buildScheduleBody = (schedule) => {
     const cat = State.getCategoryById(schedule.categoryId);
     const pri = State.getPriorityById(schedule.priorityId);
-    return JSON.stringify({
+    const body = {
       summary: schedule.description || '(Tanpa judul)',
       description: `Kategori: ${cat.name}\nPrioritas: ${pri.name}`,
       start: { dateTime: `${schedule.date}T${schedule.startTime}:00`, timeZone: 'Asia/Jakarta' },
       end: { dateTime: `${schedule.date}T${schedule.endTime}:00`, timeZone: 'Asia/Jakarta' },
       extendedProperties: { private: { dailytrack: 'v1' } },
-    });
+    };
+    const rrule = toRecurrence(schedule);
+    if (rrule) body.recurrence = rrule;
+    return JSON.stringify(body);
   };
 
   const buildTodoBody = (todo) => {
