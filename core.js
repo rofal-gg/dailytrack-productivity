@@ -504,3 +504,32 @@ export const initSyncButton = (gcalSync) => {
 
   updateSyncBtn();
 };
+
+/* ============================================================
+ * IMPORT BUTTON INIT — dipanggil per halaman dengan GcalSync
+ * ============================================================ */
+export const initImportButton = (gcalSync) => {
+  const btnImport = document.getElementById('btnImportGcal');
+  if (!btnImport) return;
+
+  btnImport.addEventListener('click', async () => {
+    btnImport.disabled = true;
+    btnImport.textContent = '📥 Mengimpor...';
+
+    try {
+      if (!gcalSync.isAuthenticated()) {
+        btnImport.textContent = '📥 Login dulu...';
+        await gcalSync.auth();
+      }
+
+      const result = await gcalSync.importEvents();
+      showAlert(`Berhasil mengimpor ${result.total} event dari Google Calendar (${result.schedules} jadwal, ${result.todos} todo).`);
+      location.reload();
+    } catch (err) {
+      showAlert(`Gagal import: ${err.message}`);
+    } finally {
+      btnImport.disabled = false;
+      btnImport.textContent = '📥 Import GCal';
+    }
+  });
+};

@@ -1,5 +1,5 @@
 // FILE: dashboard.js
-import { State, Utils, initSharedNav, initSyncButton } from './core.js';
+import { State, Utils, initSharedNav, initSyncButton, initImportButton } from './core.js';
 import { GcalSync } from './gcal-sync.js';
 
 const HOURS = Array.from({ length: 17 }, (_, i) => `${String(i + 6).padStart(2, '0')}:00`); // 06:00–22:00
@@ -185,5 +185,6 @@ document.addEventListener('DOMContentLoaded', () => {
   State.init();
   initSharedNav();
   initSyncButton(GcalSync);
+  initImportButton(GcalSync);
   renderAll();
 });

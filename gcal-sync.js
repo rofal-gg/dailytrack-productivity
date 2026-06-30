@@ -49,6 +49,12 @@ const clearToken = () => {
   accessToken = null;
 };
 
+const fmtLocalDate = (d) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
+const fmtLocalTime = (d) =>
+  `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+
 const getSyncState = () => {
   try { return JSON.parse(localStorage.getItem(SYNC_KEY) || '{}'); }
   catch { return {}; }
@@ -130,6 +136,7 @@ export const GcalSync = (() => {
       description: `Kategori: ${cat.name}\nPrioritas: ${pri.name}`,
       start: { dateTime: `${schedule.date}T${schedule.startTime}:00`, timeZone: 'Asia/Jakarta' },
       end: { dateTime: `${schedule.date}T${schedule.endTime}:00`, timeZone: 'Asia/Jakarta' },
+      extendedProperties: { private: { dailytrack: 'v1' } },
     });
   };
 
@@ -140,6 +147,7 @@ export const GcalSync = (() => {
       description: `Prioritas: ${pri.name}\n(Dari To-Do DailyTrack)`,
       start: { date: todo.date, timeZone: 'Asia/Jakarta' },
       end: { date: todo.date, timeZone: 'Asia/Jakarta' },
+      extendedProperties: { private: { dailytrack: 'v1' } },
     });
   };
 
@@ -175,6 +183,65 @@ export const GcalSync = (() => {
     if (res.status === 401) { clearToken(); throw new Error('Sesi login habis. Silakan login ulang.'); }
     if (res.status === 404) return;
     if (!res.ok) { const body = await res.text().catch(() => ''); throw new Error(`HTTP ${res.status}: ${body || res.statusText}`); }
+  };
+
+  const fetchEvents = async (timeMin, timeMax) => {
+    const params = new URLSearchParams({
+      timeMin: timeMin.toISOString(),
+      timeMax: timeMax.toISOString(),
+      singleEvents: true,
+      orderBy: 'startTime',
+    });
+    return doFetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events?${params}`);
+  };
+
+  const importEvents = async () => {
+    if (!isAuthenticated()) throw new Error('Belum login');
+
+    const now = new Date();
+    const timeMax = new Date(now);
+    timeMax.setDate(timeMax.getDate() + 30);
+
+    const data = await fetchEvents(now, timeMax);
+    const items = data.items || [];
+
+    const syncState = getSyncState();
+    const knownGcalIds = new Set(
+      Object.values(syncState).map((s) => s.gcalEventId).filter(Boolean)
+    );
+
+    let schedules = 0, todos = 0;
+
+    for (const event of items) {
+      if (!event.start) continue;
+      if (knownGcalIds.has(event.id)) continue;
+      if (event.extendedProperties?.private?.dailytrack) continue;
+
+      const summary = event.summary || '(Tanpa judul)';
+
+      if (event.start.dateTime) {
+        const sd = new Date(event.start.dateTime);
+        const ed = new Date(event.end.dateTime);
+        State.addSchedule({
+          description: summary,
+          date: fmtLocalDate(sd),
+          startTime: fmtLocalTime(sd),
+          endTime: fmtLocalTime(ed),
+          categoryId: State.getCategories()[0]?.id || '',
+          priorityId: State.getPriorities()[0]?.id || '',
+        });
+        schedules++;
+      } else if (event.start.date) {
+        State.addTodo({
+          name: summary,
+          date: event.start.date,
+          priorityId: State.getPriorities()[0]?.id || '',
+        });
+        todos++;
+      }
+    }
+
+    return { schedules, todos, total: schedules + todos };
   };
 
   const syncAll = async () => {
@@ -273,7 +340,7 @@ export const GcalSync = (() => {
 
   return {
     init, isAuthenticated, auth,
-    pushSchedule, pushTodo, syncAll,
+    pushSchedule, pushTodo, syncAll, importEvents,
     getSyncStatus, markDirty, clearAllSync,
     getLastSyncTime, getSyncedCount, getTokenExpiry,
   };

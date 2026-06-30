@@ -1,5 +1,5 @@
 // FILE: todo.js
-import { State, Utils, initSharedNav, initSyncButton, showConfirm } from './core.js';
+import { State, Utils, initSharedNav, initSyncButton, initImportButton, showConfirm } from './core.js';
 import { GcalSync } from './gcal-sync.js';
 
 const todoListEl = document.getElementById('todoList');
@@ -126,6 +126,7 @@ document.addEventListener('DOMContentLoaded', () => {
   State.init();
   initSharedNav();
   initSyncButton(GcalSync);
+  initImportButton(GcalSync);
   renderSelectOptions();
   renderTodos();
 });
