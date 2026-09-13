@@ -1,0 +1,75 @@
+/* FILE: todo.css */
+
+/* ---------- Todo page ---------- */
+.progress-wrapper { margin-bottom: var(--space-lg); }
+.progress-info {
+  display: flex; justify-content: space-between;
+  font-size: var(--font-size-base); color: var(--color-text-muted);
+  margin-bottom: var(--space-xs); font-weight: 600;
+}
+.progress-bar-track { width: 100%; height: 10px; background: var(--color-bg); border-radius: 999px; overflow: hidden; }
+.progress-bar-fill {
+  height: 100%; width: 0%;
+  background: linear-gradient(90deg, var(--color-secondary), var(--color-primary));
+  border-radius: 999px; transition: width 0.4s ease;
+}
+
+.date-group-header {
+  font-size: var(--font-size-base); font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.03em; color: var(--color-text-muted);
+  margin-bottom: var(--space-sm); padding-bottom: var(--space-xs);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.riwayat-header {
+  margin-top: var(--space-lg);
+  padding-top: var(--space-md);
+  border-top: 2px solid var(--color-border);
+  color: var(--color-text-muted);
+}
+
+.item-list { display: flex; flex-direction: column; gap: var(--space-sm); margin-bottom: var(--space-lg); }
+
+.todo-card {
+  display: flex; align-items: center; gap: var(--space-md);
+  padding: var(--space-md); border-radius: var(--radius-md);
+  border-left: 5px solid; box-shadow: var(--shadow-sm); transition: var(--transition);
+}
+.todo-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+.todo-card.completed { opacity: 0.5; }
+.todo-card.completed .card-title { text-decoration: line-through; }
+
+.card-body { flex: 1; min-width: 0; }
+.card-title { font-size: var(--font-size-base); font-weight: 600; margin-bottom: 4px; word-break: break-word; }
+.card-meta { display: flex; gap: 4px; flex-wrap: wrap; }
+
+.todo-checkbox-wrapper { position: relative; display: flex; align-items: center; cursor: pointer; }
+.todo-checkbox { position: absolute; opacity: 0; width: 22px; height: 22px; cursor: pointer; margin: 0; }
+.custom-checkbox {
+  width: 22px; height: 22px; border-radius: 6px;
+  border: 2px solid var(--color-text-muted); background: #fff;
+  display: inline-block; position: relative; transition: var(--transition); flex-shrink: 0;
+}
+.todo-checkbox:checked + .custom-checkbox { background: var(--color-primary); border-color: var(--color-primary); }
+.todo-checkbox:checked + .custom-checkbox::after {
+  content: ''; position: absolute; left: 6px; top: 2px; width: 6px; height: 11px;
+  border: solid white; border-width: 0 2px 2px 0; transform: rotate(45deg);
+}
+
+/* ---------- Compact cards (mobile) ---------- */
+@media (max-width: 768px) {
+  .todo-card { padding: 12px; }
+  .card-title { font-size: var(--font-size-base); }
+  .badge { font-size: var(--font-size-xs); padding: 2px 6px; }
+  .card-meta { gap: 3px; }
+
+  .todo-checkbox-wrapper { min-width: 44px; min-height: 44px; }
+  .custom-checkbox { width: 24px; height: 24px; }
+
+  .progress-bar-track { height: 12px; }
+  .progress-info { font-size: var(--font-size-base); }
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .todo-card:hover { transform: none; box-shadow: var(--shadow-sm); }
+}

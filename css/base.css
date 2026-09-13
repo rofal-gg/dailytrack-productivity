@@ -1,0 +1,56 @@
+/* FILE: base.css */
+:root {
+  --color-bg: #f4f6fb;
+  --color-surface: #ffffff;
+  --color-primary: #6c63ff;
+  --color-primary-dark: #564fd8;
+  --color-secondary: #00b8a9;
+  --color-danger: #ff5c5c;
+  --color-danger-dark: #e34545;
+  --color-text: #2d2d3a;
+  --color-text-muted: #767688;
+  --color-border: #e0e3ec;
+
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+
+  --shadow-sm: 0 2px 8px rgba(45, 45, 58, 0.06);
+  --shadow-md: 0 8px 24px rgba(45, 45, 58, 0.1);
+  --shadow-lg: 0 16px 40px rgba(45, 45, 58, 0.18);
+
+  --font-size-xs: 0.7rem;
+  --font-size-sm: 0.78rem;
+  --font-size-base: 0.88rem;
+  --font-size-md: 0.95rem;
+  --font-size-lg: 1.05rem;
+  --font-size-xl: 1.15rem;
+  --font-size-2xl: 1.3rem;
+
+  --transition: all 0.18s ease;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: var(--color-bg);
+  color: var(--color-text);
+  line-height: 1.5;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+@media (hover: none) and (pointer: coarse) {
+  * { -webkit-tap-highlight-color: transparent; }
+  .btn:active { transform: scale(0.97); }
+  .btn-action:active { transform: scale(0.95); }
+  .todo-card:hover { transform: none; box-shadow: var(--shadow-sm); }
+  .todo-card:active { transform: scale(0.98); }
+}

@@ -15,25 +15,32 @@
   form-action 'self';
 ">
 <title>Jadwal - DailyTrack</title>
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="../css/base.css">
+<link rel="stylesheet" href="../css/layout.css">
+<link rel="stylesheet" href="../css/components.css">
+<link rel="stylesheet" href="../css/jadwal.css">
+<link rel="stylesheet" href="../css/responsive.css">
 </head>
 <body>
 
 <header class="navbar">
   <div class="navbar-inner">
     <a href="dashboard.html" class="brand">📅 DailyTrack</a>
+    <button class="hamburger" id="hamburgerBtn" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
     <nav class="nav-links">
       <a href="dashboard.html" class="nav-link">Dashboard</a>
       <a href="jadwal.html" class="nav-link active">Jadwal</a>
       <a href="todo.html" class="nav-link">To-Do</a>
+      <div class="navbar-actions">
+        <button id="btnSyncGcal" class="btn btn-outline btn-sync">☁️ Sync GCal</button>
+        <button id="btnImportGcal" class="btn btn-outline btn-import">📥 Import GCal</button>
+        <button id="btnResetSync" class="btn btn-outline btn-reset-sync">🔄 Reset Sync</button>
+        <button id="btnExportCsv" class="btn btn-secondary">Export CSV</button>
+        <button id="btnReset" class="btn btn-danger">Reset</button>
+      </div>
     </nav>
-    <div class="navbar-actions">
-      <button id="btnSyncGcal" class="btn btn-outline btn-sync">☁️ Sync GCal</button>
-      <button id="btnImportGcal" class="btn btn-outline btn-import">📥 Import GCal</button>
-      <button id="btnResetSync" class="btn btn-outline btn-reset-sync">🔄 Reset Sync</button>
-      <button id="btnExportCsv" class="btn btn-secondary">Export CSV</button>
-      <button id="btnReset" class="btn btn-danger">Reset</button>
-    </div>
   </div>
 </header>
 
@@ -212,6 +219,7 @@
   <p>&copy; 2026 Muhammad Ainur Rofal Achsony &bull; All Rights Reserved &bull; Kritik &amp; Saran: <a href="mailto:achsony07@gmail.com">achsony07@gmail.com</a></p>
 </footer>
 
-<script type="module" src="jadwal.js"></script>
+<script type="module" src="../js/navbar.js"></script>
+<script type="module" src="../js/jadwal.js"></script>
 </body>
 </html>

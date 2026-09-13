@@ -1,5 +1,5 @@
 // FILE: dashboard.js
-import { State, Utils, initSharedNav, initSyncButton, initImportButton, initResetSyncButton } from './core.js';
+import { State, Utils, initSharedNav, initSyncButton, initImportButton, initResetSyncButton, setModalOpen } from './core.js';
 import { GcalSync } from './gcal-sync.js';
 
 const HOURS = Array.from({ length: 17 }, (_, i) => `${String(i + 6).padStart(2, '0')}:00`); // 06:00–22:00
@@ -13,6 +13,7 @@ const matrixGrid = document.getElementById('matrixGrid');
 const todoWeekGrid = document.getElementById('todoWeekGrid');
 const weekLabel = document.getElementById('weekLabel');
 const legendEl = document.getElementById('legend');
+const matrixMobile = document.getElementById('matrixMobile');
 
 const getWeekDates = () => Array.from({ length: 7 }, (_, i) => Utils.addDays(weekStart, i));
 
@@ -120,11 +121,86 @@ const renderWeekLabel = () => {
   weekLabel.textContent = Utils.formatWeekRangeLabel(weekStart);
 };
 
+const renderMobileView = () => {
+  if (window.innerWidth > 768) return;
+  const weekDates = getWeekDates();
+  const schedules = State.getSchedules();
+  const weekEndStr = Utils.formatDateInput(Utils.addDays(weekStart, 6));
+  let html = '';
+
+  weekDates.forEach((d) => {
+    const dateStr = Utils.formatDateInput(d);
+    const dayName = Utils.DAY_NAMES[d.getDay()];
+    const dateDisplay = `${d.getDate()}/${d.getMonth() + 1}`;
+
+    let slotsHtml = '';
+    HOURS.forEach((hourLabel) => {
+      const hourNum = parseInt(hourLabel, 10);
+      const items = schedules.filter((s) => {
+        const rt = s.repeatType || (s.repeatDaily ? 'daily' : 'none');
+        const dateMatch = s.date === dateStr;
+        const isBeforeWeekEnd = s.date <= weekEndStr;
+        const dayMatch = rt === 'weekly' && isBeforeWeekEnd && Utils.parseDateStr(s.date).getDay() === d.getDay();
+        const dailyMatch = rt === 'daily' && isBeforeWeekEnd;
+        return (dateMatch || dailyMatch || dayMatch) && getHour(s.startTime) === hourNum;
+      });
+
+      slotsHtml += `<div class="mobile-time-slot">
+        <span class="mobile-time-label">${hourLabel}</span>
+        <div class="mobile-chips">
+          ${items.length ? items.map((s) => {
+            const color = colorMode === 'category'
+              ? State.getCategoryById(s.categoryId).color
+              : State.getPriorityById(s.priorityId).color;
+            return `<div class="mobile-chip" data-id="${s.id}" style="border-left-color:${color}; background:${color}22;">
+              ${Utils.escapeHtml(s.description || '(Tanpa judul)')}
+            </div>`;
+          }).join('') : ''}
+        </div>
+      </div>`;
+    });
+
+    // "Lainnya" slot
+    const otherItems = schedules.filter((s) => {
+      const rt = s.repeatType || (s.repeatDaily ? 'daily' : 'none');
+      const dateMatch = s.date === dateStr;
+      const isBeforeWeekEnd = s.date <= weekEndStr;
+      const dayMatch = rt === 'weekly' && isBeforeWeekEnd && Utils.parseDateStr(s.date).getDay() === d.getDay();
+      const dailyMatch = rt === 'daily' && isBeforeWeekEnd;
+      return (dateMatch || dailyMatch || dayMatch) && !inRange(getHour(s.startTime));
+    });
+
+    if (otherItems.length) {
+      slotsHtml += `<div class="mobile-time-slot">
+        <span class="mobile-time-label">Lainnya</span>
+        <div class="mobile-chips">
+          ${otherItems.map((s) => {
+            const color = colorMode === 'category'
+              ? State.getCategoryById(s.categoryId).color
+              : State.getPriorityById(s.priorityId).color;
+            return `<div class="mobile-chip" data-id="${s.id}" style="border-left-color:${color}; background:${color}22;">
+              ${Utils.escapeHtml(s.description || '(Tanpa judul)')}
+            </div>`;
+          }).join('')}
+        </div>
+      </div>`;
+    }
+
+    html += `<div class="mobile-day-card">
+      <div class="mobile-day-header">${dayName} <span class="mobile-day-date">${dateDisplay}</span></div>
+      ${slotsHtml}
+    </div>`;
+  });
+
+  matrixMobile.innerHTML = html;
+};
+
 const renderAll = () => {
   renderWeekLabel();
   renderLegend();
   renderMatrix();
   renderTodoWeek();
+  renderMobileView();
 };
 
 const setColorMode = (mode) => {
@@ -172,14 +248,63 @@ matrixGrid.addEventListener('click', (e) => {
     <div class="detail-field"><span class="detail-label">Prioritas</span><span class="detail-value"><span class="detail-swatch" style="background:${pri.color}"></span>${Utils.escapeHtml(pri.name)}</span></div>
   `;
   document.getElementById('modalDetail').classList.add('active');
+  setModalOpen(true);
 });
 
 document.querySelectorAll('[data-close-modal]').forEach((btn) => {
-  btn.addEventListener('click', () => document.getElementById(btn.dataset.closeModal).classList.remove('active'));
+  btn.addEventListener('click', () => { document.getElementById(btn.dataset.closeModal).classList.remove('active'); setModalOpen(false); });
 });
 document.querySelectorAll('.modal-overlay').forEach((overlay) => {
-  overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.classList.remove('active'); });
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) { overlay.classList.remove('active'); setModalOpen(false); } });
 });
+
+matrixMobile.addEventListener('click', (e) => {
+  const chip = e.target.closest('.mobile-chip');
+  if (!chip) return;
+  const schedule = State.getSchedules().find((s) => s.id === chip.dataset.id);
+  if (!schedule) return;
+  const cat = State.getCategoryById(schedule.categoryId);
+  const pri = State.getPriorityById(schedule.priorityId);
+  document.getElementById('detailBody').innerHTML = `
+    <div class="detail-field"><span class="detail-label">Deskripsi</span><span class="detail-value">${Utils.escapeHtml(schedule.description || '(Tanpa judul)')}</span></div>
+    <div class="detail-field"><span class="detail-label">Tanggal</span><span class="detail-value">${Utils.formatDateDisplay(schedule.date)}</span></div>
+    <div class="detail-field"><span class="detail-label">Waktu</span><span class="detail-value">${schedule.startTime} – ${schedule.endTime}</span></div>
+    <div class="detail-field"><span class="detail-label">Kategori</span><span class="detail-value"><span class="detail-swatch" style="background:${cat.color}"></span>${Utils.escapeHtml(cat.name)}</span></div>
+    <div class="detail-field"><span class="detail-label">Prioritas</span><span class="detail-value"><span class="detail-swatch" style="background:${pri.color}"></span>${Utils.escapeHtml(pri.name)}</span></div>
+  `;
+  document.getElementById('modalDetail').classList.add('active');
+  setModalOpen(true);
+});
+
+let resizeTimer;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => renderMobileView(), 150);
+});
+
+(function initSwipeGesture() {
+  const targets = document.querySelectorAll('.matrix-scroll, .matrix-mobile');
+  let startX = 0;
+  let startY = 0;
+
+  targets.forEach((el) => {
+    el.addEventListener('touchstart', (e) => {
+      startX = e.touches[0].clientX;
+      startY = e.touches[0].clientY;
+    }, { passive: true });
+
+    el.addEventListener('touchend', (e) => {
+      const dx = e.changedTouches[0].clientX - startX;
+      const dy = e.changedTouches[0].clientY - startY;
+      if (Math.abs(dx) < 50 || Math.abs(dy) > Math.abs(dx)) return;
+      if (dx < 0) {
+        document.getElementById('btnNextWeek').click();
+      } else {
+        document.getElementById('btnPrevWeek').click();
+      }
+    }, { passive: true });
+  });
+})();
 
 document.addEventListener('DOMContentLoaded', () => {
   State.init();

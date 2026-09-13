@@ -1,0 +1,265 @@
+/* FILE: layout.css */
+
+html { scroll-behavior: smooth; }
+
+/* ---------- Navbar ---------- */
+.navbar {
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+  position: sticky;
+  top: 0;
+  z-index: 60;
+}
+
+.navbar-inner {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: var(--space-md) var(--space-lg);
+  display: flex;
+  align-items: center;
+  gap: var(--space-lg);
+  position: relative;
+}
+
+.brand {
+  font-size: var(--font-size-2xl);
+  font-weight: 800;
+  color: var(--color-primary-dark);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex: 1;
+}
+
+.nav-link {
+  text-decoration: none;
+  color: var(--color-text-muted);
+  font-weight: 600;
+  font-size: var(--font-size-sm);
+  padding: 8px 14px;
+  border-radius: var(--radius-sm);
+  transition: var(--transition);
+}
+
+.nav-link:hover { background: var(--color-bg); color: var(--color-text); }
+
+.nav-link.active {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.navbar-actions {
+  display: flex;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+  margin-left: auto;
+}
+
+/* ---------- Hamburger ---------- */
+.hamburger {
+  display: none;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+}
+
+.hamburger span {
+  width: 22px;
+  height: 2px;
+  background: var(--color-text);
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.hamburger.active span:nth-child(1) {
+  transform: rotate(45deg) translateY(6px);
+}
+
+.hamburger.active span:nth-child(2) {
+  opacity: 0;
+}
+
+.hamburger.active span:nth-child(3) {
+  transform: rotate(-45deg) translateY(-6px);
+}
+
+/* ---------- Page container ---------- */
+.page-container {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: var(--space-lg);
+}
+
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+  margin-bottom: var(--space-lg);
+}
+
+.page-header h1 { font-size: var(--font-size-xl); }
+.page-header-actions { display: flex; gap: var(--space-sm); flex-wrap: wrap; }
+
+.panel {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: var(--space-lg);
+  margin-bottom: var(--space-lg);
+}
+
+.empty-state {
+  text-align: center;
+  color: var(--color-text-muted);
+  padding: var(--space-xl) var(--space-md);
+  font-size: var(--font-size-md);
+}
+
+/* ---------- Modal ---------- */
+.modal-overlay {
+  display: none; position: fixed; inset: 0; background: rgba(20,20,30,0.5);
+  align-items: center; justify-content: center; padding: var(--space-md); z-index: 100;
+}
+.modal-overlay.active { display: flex; animation: fadeIn 0.2s ease; }
+.modal {
+  background: var(--color-surface); border-radius: var(--radius-lg); box-shadow: var(--shadow-lg);
+  width: 100%; max-width: 460px; max-height: 90vh; overflow-y: auto; animation: scaleIn 0.2s ease;
+}
+@keyframes fadeIn { from{opacity:0;} to{opacity:1;} }
+@keyframes scaleIn { from{transform:scale(0.95);opacity:0;} to{transform:scale(1);opacity:1;} }
+
+.modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: var(--space-md) var(--space-lg); border-bottom: 1px solid var(--color-border);
+}
+.modal-header h3 { font-size: var(--font-size-lg); }
+
+.modal-sm { max-width: 380px; }
+.modal-close { border: none; background: transparent; font-size: var(--font-size-2xl); line-height: 1; cursor: pointer; color: var(--color-text-muted); }
+.modal-close:hover { color: var(--color-text); }
+.modal-body { padding: var(--space-lg); }
+
+.modal-footer { display: flex; justify-content: center; gap: var(--space-md); padding: 0 var(--space-lg) var(--space-lg); }
+.modal-footer .btn { min-width: 90px; padding: 10px 20px; }
+
+/* ---------- Detail modal fields ---------- */
+.detail-field {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: 10px 0;
+  border-bottom: 1px solid var(--color-border);
+}
+.detail-field:last-child { border-bottom: none; }
+.detail-label {
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: var(--color-text-muted);
+  min-width: 80px;
+  flex-shrink: 0;
+}
+.detail-value {
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.detail-swatch {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+/* ---------- Footer ---------- */
+.app-footer {
+  text-align: center;
+  padding: var(--space-lg);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+.app-footer a {
+  color: var(--color-primary);
+  text-decoration: none;
+  font-weight: 600;
+}
+.app-footer a:hover { text-decoration: underline; }
+
+/* ---------- Modal open body lock ---------- */
+body.modal-open { overflow: hidden; }
+
+/* ---------- Mobile: Modal ---------- */
+@media (max-width: 480px) {
+  .modal-overlay {
+    padding: 0;
+  }
+  .modal {
+    max-width: 100%;
+    max-height: 100vh;
+    border-radius: 0;
+    height: 100vh;
+  }
+  .modal-header {
+    padding: 16px;
+    border-bottom: 1px solid var(--color-border);
+  }
+  .modal-body {
+    padding: 16px;
+    overflow-y: auto;
+  }
+  .modal-footer {
+    padding: 16px;
+    flex-direction: column;
+  }
+  .modal-footer .btn {
+    width: 100%;
+    padding: 14px;
+  }
+}
+
+/* ---------- Mobile: Form ---------- */
+@media (max-width: 480px) {
+  .form-group {
+    margin-bottom: 20px;
+  }
+  label {
+    font-size: var(--font-size-base);
+  }
+  input[type="text"],
+  input[type="date"],
+  input[type="time"],
+  select {
+    padding: 14px 12px;
+    font-size: var(--font-size-md);
+  }
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+  .radio-group {
+    flex-direction: column;
+    gap: 10px;
+  }
+  .radio-option {
+    padding: 14px 16px;
+    width: 100%;
+  }
+  .manage-add-row {
+    flex-direction: column;
+  }
+  .manage-add-row input[type="text"] {
+    width: 100%;
+  }
+  .manage-add-row .btn {
+    width: 100%;
+  }
+}

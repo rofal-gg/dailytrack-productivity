@@ -1,5 +1,5 @@
 // FILE: jadwal.js
-import { State, Utils, GCalService, initSharedNav, initSyncButton, initImportButton, initResetSyncButton, showConfirm, showAlert } from './core.js';
+import { State, Utils, GCalService, initSharedNav, initSyncButton, initImportButton, initResetSyncButton, showConfirm, showAlert, setModalOpen } from './core.js';
 import { GcalSync } from './gcal-sync.js';
 
 const thead = document.getElementById('jadwalThead');
@@ -35,7 +35,7 @@ const renderThead = () => {
 const buildCustomCells = (schedule, columns) =>
   columns.map((col) => {
     const val = schedule.customFields?.[col.id] ?? '';
-    return `<td class="td-text">${Utils.escapeHtml(val) || '-'}</td>`;
+    return `<td class="td-text" data-label="${Utils.escapeHtml(col.label)}">${Utils.escapeHtml(val) || '-'}</td>`;
   }).join('');
 
 const buildRowHTML = (schedule, columns) => {
@@ -45,12 +45,12 @@ const buildRowHTML = (schedule, columns) => {
   let dateCell;
   const rt = schedule.repeatType || (schedule.repeatDaily ? 'daily' : 'none');
   if (rt === 'daily') {
-    dateCell = `<td><span class="repeat-daily-label">Setiap Hari</span></td>`;
+    dateCell = `<td data-label="Tanggal"><span class="repeat-daily-label">Setiap Hari</span></td>`;
   } else if (rt === 'weekly') {
     const dayName = Utils.DAY_NAMES[Utils.parseDateStr(schedule.date).getDay()];
-    dateCell = `<td><span class="repeat-weekly-label">Setiap ${dayName}</span></td>`;
+    dateCell = `<td data-label="Tanggal"><span class="repeat-weekly-label">Setiap ${dayName}</span></td>`;
   } else {
-    dateCell = `<td class="td-text">${Utils.formatDateDisplay(schedule.date)}</td>`;
+    dateCell = `<td class="td-text" data-label="Tanggal">${Utils.formatDateDisplay(schedule.date)}</td>`;
   }
 
   const isRecurring = rt === 'daily' || rt === 'weekly';
@@ -70,12 +70,12 @@ const buildRowHTML = (schedule, columns) => {
 
   return `
     <tr data-row-id="${schedule.id}" class="${isCompleted ? 'row-completed' : ''}">
-      <td class="td-text td-desc">${Utils.escapeHtml(schedule.description) || '-'}</td>
+      <td class="td-text td-desc" data-label="Deskripsi">${Utils.escapeHtml(schedule.description) || '-'}</td>
       ${dateCell}
-      <td class="td-text">${schedule.startTime}</td>
-      <td class="td-text">${schedule.endTime}</td>
-      <td><span class="badge" style="background:${cat.color};">${Utils.escapeHtml(cat.name)}</span></td>
-      <td><span class="badge" style="background:${pri.color};">${Utils.escapeHtml(pri.name)}</span></td>
+      <td class="td-text" data-label="Mulai">${schedule.startTime}</td>
+      <td class="td-text" data-label="Selesai">${schedule.endTime}</td>
+      <td data-label="Kategori"><span class="badge" style="background:${cat.color};">${Utils.escapeHtml(cat.name)}</span></td>
+      <td data-label="Prioritas"><span class="badge" style="background:${pri.color};">${Utils.escapeHtml(pri.name)}</span></td>
       ${buildCustomCells(schedule, columns)}
       <td class="action-cell">${actions}</td>
     </tr>
@@ -199,6 +199,7 @@ document.getElementById('formJadwal').addEventListener('submit', (e) => {
 
   ModalController.close('modalJadwal');
   renderTable();
+  toggleMobileView();
 });
 
 /* ---------------- Inline Editing ---------------- */
@@ -236,17 +237,20 @@ tbody.addEventListener('click', async (e) => {
     State.updateSchedule(id, { completed: true });
     GcalSync.markDirty(id);
     renderTable();
+    toggleMobileView();
   }
   if (action === 'restore-row') {
     State.updateSchedule(id, { completed: false });
     GcalSync.markDirty(id);
     renderTable();
+    toggleMobileView();
   }
   if (action === 'delete-row') {
     const ok = await showConfirm('Hapus baris jadwal ini?');
     if (ok) {
       State.deleteSchedule(id);
       renderTable();
+      toggleMobileView();
     }
   }
   if (action === 'gcal') {
@@ -262,6 +266,7 @@ thead.addEventListener('click', async (e) => {
   if (ok) {
     State.deleteColumn(btn.dataset.id);
     renderTable();
+    toggleMobileView();
   }
 });
 
@@ -323,20 +328,21 @@ document.getElementById('formAddColumn').addEventListener('submit', (e) => {
 
   State.addColumn({ label, type, options: [...pendingDropdownOptions] });
   renderTable();
+  toggleMobileView();
   ModalController.close('modalAddColumn');
 });
 
 /* ---------------- Modal: Kelola Kategori & Prioritas ---------------- */
 const ModalController = {
-  open: (id) => document.getElementById(id).classList.add('active'),
-  close: (id) => document.getElementById(id).classList.remove('active'),
+  open: (id) => { document.getElementById(id).classList.add('active'); setModalOpen(true); },
+  close: (id) => { document.getElementById(id).classList.remove('active'); setModalOpen(false); },
 };
 
 document.querySelectorAll('[data-close-modal]').forEach((btn) => {
   btn.addEventListener('click', () => ModalController.close(btn.dataset.closeModal));
 });
 document.querySelectorAll('.modal-overlay').forEach((overlay) => {
-  overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.classList.remove('active'); });
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) { overlay.classList.remove('active'); setModalOpen(false); } });
 });
 
 const patternLabels = {
@@ -385,11 +391,12 @@ document.getElementById('formCategory').addEventListener('submit', (e) => {
   const color = document.getElementById('categoryColorInput').value;
   const repeatPattern = document.getElementById('categoryRepeat').value;
   if (!name) return;
-  State.addCategory(name, color, repeatPattern);
-  document.getElementById('categoryNameInput').value = '';
-  document.getElementById('categoryRepeat').value = 'none';
-  renderCategoryList();
-  renderTable();
+    State.addCategory(name, color, repeatPattern);
+    document.getElementById('categoryNameInput').value = '';
+    document.getElementById('categoryRepeat').value = 'none';
+    renderCategoryList();
+    renderTable();
+    toggleMobileView();
 });
 
 document.getElementById('formPriority').addEventListener('submit', (e) => {
@@ -397,10 +404,11 @@ document.getElementById('formPriority').addEventListener('submit', (e) => {
   const name = document.getElementById('priorityNameInput').value.trim();
   const color = document.getElementById('priorityColorInput').value;
   if (!name) return;
-  State.addPriority(name, color);
-  document.getElementById('priorityNameInput').value = '';
-  renderPriorityList();
-  renderTable();
+    State.addPriority(name, color);
+    document.getElementById('priorityNameInput').value = '';
+    renderPriorityList();
+    renderTable();
+    toggleMobileView();
 });
 
 document.getElementById('categoryList').addEventListener('input', (e) => {
@@ -408,6 +416,7 @@ document.getElementById('categoryList').addEventListener('input', (e) => {
   if (!target) return;
   State.updateCategory(target.dataset.id, { color: target.value });
   renderTable();
+  toggleMobileView();
 });
 document.getElementById('categoryList').addEventListener('click', async (e) => {
   const target = e.target.closest('[data-action="delete-category"]');
@@ -417,6 +426,7 @@ document.getElementById('categoryList').addEventListener('click', async (e) => {
     State.deleteCategory(target.dataset.id);
     renderCategoryList();
     renderTable();
+    toggleMobileView();
   }
 });
 
@@ -425,6 +435,7 @@ document.getElementById('priorityList').addEventListener('input', (e) => {
   if (!target) return;
   State.updatePriority(target.dataset.id, { color: target.value });
   renderTable();
+  toggleMobileView();
 });
 document.getElementById('priorityList').addEventListener('click', async (e) => {
   const target = e.target.closest('[data-action="delete-priority"]');
@@ -434,8 +445,20 @@ document.getElementById('priorityList').addEventListener('click', async (e) => {
     State.deletePriority(target.dataset.id);
     renderPriorityList();
     renderTable();
+    toggleMobileView();
   }
 });
+
+/* ---------------- Mobile View Toggle ---------------- */
+const toggleMobileView = () => {
+  const table = document.querySelector('.excel-table');
+  if (!table) return;
+  if (window.innerWidth <= 768) {
+    table.classList.add('mobile-view');
+  } else {
+    table.classList.remove('mobile-view');
+  }
+};
 
 /* ---------------- Init ---------------- */
 document.addEventListener('DOMContentLoaded', () => {
@@ -445,4 +468,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initImportButton(GcalSync);
   initResetSyncButton(GcalSync);
   renderTable();
+  toggleMobileView();
 });
+
+window.addEventListener('resize', toggleMobileView);

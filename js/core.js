@@ -361,6 +361,13 @@ export const CsvExporter = (() => {
 })();
 
 /* ============================================================
+ * MODAL OPEN HELPER (body scroll lock)
+ * ============================================================ */
+export const setModalOpen = (isOpen) => {
+  document.body.classList.toggle('modal-open', isOpen);
+};
+
+/* ============================================================
  * CUSTOM DIALOG (menggantikan alert / confirm bawaan)
  * ============================================================ */
 let dialogResolve = null;
@@ -388,15 +395,18 @@ const createDialog = () => {
     if (e.target === div) {
       if (dialogResolve) dialogResolve(false);
       div.classList.remove('active');
+      setModalOpen(false);
     }
   });
   document.getElementById('appDialogOk').addEventListener('click', () => {
     if (dialogResolve) dialogResolve(true);
     div.classList.remove('active');
+    setModalOpen(false);
   });
   document.getElementById('appDialogCancel').addEventListener('click', () => {
     if (dialogResolve) dialogResolve(false);
     div.classList.remove('active');
+    setModalOpen(false);
   });
 
   return div;
@@ -411,6 +421,7 @@ export const showAlert = (message) => {
   document.getElementById('appDialogOk').style.display = '';
   document.getElementById('appDialogCancel').style.display = 'none';
   d.classList.add('active');
+  setModalOpen(true);
   return new Promise((resolve) => {
     dialogResolve = (val) => { resolve(val); dialogResolve = null; };
   });
@@ -425,6 +436,7 @@ export const showConfirm = (message) => {
   document.getElementById('appDialogCancel').textContent = 'Batal';
   document.getElementById('appDialogOk').textContent = 'OK';
   d.classList.add('active');
+  setModalOpen(true);
   return new Promise((resolve) => {
     dialogResolve = (val) => { resolve(val); dialogResolve = null; };
   });

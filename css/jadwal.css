@@ -1,0 +1,231 @@
+/* FILE: jadwal.css */
+
+/* ---------- Excel-style table (Jadwal) ---------- */
+.table-scroll {
+  overflow-x: auto;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+}
+
+.excel-table {
+  border-collapse: collapse;
+  width: 100%;
+  min-width: 980px;
+  font-size: var(--font-size-base);
+}
+
+.excel-table thead th {
+  background: var(--color-bg);
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  text-align: left;
+  padding: 10px 8px;
+  font-weight: 700;
+  font-size: var(--font-size-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--color-text-muted);
+  border-bottom: 2px solid var(--color-border);
+  white-space: nowrap;
+}
+
+.excel-table th.col-header-custom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.excel-table td {
+  border: 1px solid var(--color-border);
+  padding: 9px 8px;
+  vertical-align: middle;
+}
+
+.excel-table tbody tr:hover { background: #fafbff; }
+
+.cell-input {
+  width: 100%;
+  border: 1.5px solid transparent;
+  background: transparent;
+  padding: 9px 8px;
+  font-size: var(--font-size-base);
+  font-family: inherit;
+  color: var(--color-text);
+  border-radius: 0;
+  transition: var(--transition);
+}
+
+.cell-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  background: #fff;
+  box-shadow: 0 0 0 2px rgba(108, 99, 255, 0.12);
+}
+
+.cell-color { font-weight: 600; cursor: pointer; }
+
+.td-text {
+  font-size: var(--font-size-base);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+}
+
+.td-desc {
+  max-width: 250px;
+}
+
+.btn-edit {
+  background: var(--color-primary);
+  color: #fff;
+}
+.btn-edit:hover { background: var(--color-primary-dark); }
+
+.btn-success {
+  background: var(--color-secondary);
+  color: #fff;
+}
+.btn-success:hover { filter: brightness(0.92); }
+
+.row-completed td {
+  opacity: 0.55;
+  text-decoration: line-through;
+}
+
+.riwayat-heading td {
+  background: var(--color-bg);
+  font-weight: 700;
+  font-size: var(--font-size-base);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--color-text-muted);
+  padding: 12px 8px !important;
+  border-bottom: 2px solid var(--color-border);
+}
+
+.riwayat-icon {
+  margin-right: 6px;
+}
+
+.repeat-daily-label,
+.repeat-weekly-label {
+  display: inline-block;
+  padding: 9px 8px;
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  width: 100%;
+  text-align: center;
+}
+
+.repeat-daily-label {
+  color: var(--color-primary);
+  background: rgba(108, 99, 255, 0.08);
+}
+
+.repeat-weekly-label {
+  color: var(--color-secondary);
+  background: rgba(0, 184, 169, 0.08);
+}
+
+.action-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 8px !important;
+}
+
+.btn-icon-delete {
+  border: none;
+  background: transparent;
+  color: var(--color-danger);
+  font-size: var(--font-size-lg);
+  cursor: pointer;
+  line-height: 1;
+  padding: 0 2px;
+  flex-shrink: 0;
+}
+.btn-icon-delete:hover { color: var(--color-danger-dark); }
+
+.btn-add-column {
+  border: 1.5px dashed var(--color-primary);
+  background: transparent;
+  color: var(--color-primary);
+  border-radius: var(--radius-sm);
+  padding: 5px 10px;
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.btn-add-column:hover { background: rgba(108, 99, 255, 0.08); }
+
+.table-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-md);
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+}
+
+/* ---------- Mobile Card View ---------- */
+.excel-table.mobile-view thead { display: none; }
+
+.excel-table.mobile-view tbody tr {
+  display: block;
+  margin-bottom: 16px;
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.excel-table.mobile-view tbody td {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--color-border);
+  text-align: right;
+}
+
+.excel-table.mobile-view tbody td:last-child { border-bottom: none; }
+
+.excel-table.mobile-view tbody td::before {
+  content: attr(data-label);
+  font-weight: 700;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  text-align: left;
+  min-width: 80px;
+}
+
+.excel-table.mobile-view .action-cell {
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-top: 8px;
+}
+
+.excel-table.mobile-view tbody tr:hover { background: #fff; }
+
+.excel-table.mobile-view .riwayat-heading {
+  display: block;
+}
+
+.excel-table.mobile-view .riwayat-heading td {
+  display: block;
+  text-align: left;
+  border-radius: 14px;
+  margin-bottom: 16px;
+}
+
+.excel-table.mobile-view .row-completed td {
+  opacity: 0.55;
+  text-decoration: line-through;
+}

@@ -1,5 +1,5 @@
 // FILE: todo.js
-import { State, Utils, initSharedNav, initSyncButton, initImportButton, initResetSyncButton, showConfirm } from './core.js';
+import { State, Utils, initSharedNav, initSyncButton, initImportButton, initResetSyncButton, showConfirm, setModalOpen } from './core.js';
 import { GcalSync } from './gcal-sync.js';
 
 const todoListEl = document.getElementById('todoList');
@@ -102,13 +102,14 @@ document.getElementById('btnAddTodo').addEventListener('click', () => {
   document.getElementById('formTodo').reset();
   document.getElementById('todoDate').value = Utils.formatDateInput(new Date());
   document.getElementById('modalTodo').classList.add('active');
+  setModalOpen(true);
 });
 
 document.querySelectorAll('[data-close-modal]').forEach((btn) => {
-  btn.addEventListener('click', () => document.getElementById(btn.dataset.closeModal).classList.remove('active'));
+  btn.addEventListener('click', () => { document.getElementById(btn.dataset.closeModal).classList.remove('active'); setModalOpen(false); });
 });
 document.querySelectorAll('.modal-overlay').forEach((overlay) => {
-  overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.classList.remove('active'); });
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) { overlay.classList.remove('active'); setModalOpen(false); } });
 });
 
 document.getElementById('formTodo').addEventListener('submit', (e) => {
@@ -120,6 +121,7 @@ document.getElementById('formTodo').addEventListener('submit', (e) => {
   });
   renderTodos();
   document.getElementById('modalTodo').classList.remove('active');
+  setModalOpen(false);
 });
 
 document.addEventListener('DOMContentLoaded', () => {
